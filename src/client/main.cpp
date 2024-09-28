@@ -100,6 +100,10 @@ int main(int argc, char **argv)
             int len = send(clientfd, request.c_str(), strlen(request.c_str() + 1), 0);
             if (-1 == len)
             {
+                std::cout << "send login msg error:" << request << std::endl;
+            }
+            else
+            {
                 
             }
             break;
@@ -108,8 +112,8 @@ int main(int argc, char **argv)
         {
             break;
         }
-
         case 3:
+            close(clientfd);
             exit(0);
         default:
             std::cerr << "invalid input!" << std::endl;
