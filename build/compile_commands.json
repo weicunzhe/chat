@@ -38,5 +38,10 @@
   "directory": "/home/xiong/chat/build",
   "command": "/usr/bin/g++ -I/home/xiong/chat/include -I/home/xiong/chat/include/server -I/home/xiong/chat/include/server/db -I/home/xiong/chat/include/server/model -I/home/xiong/chat/thirdparty -g -g -o src/server/CMakeFiles/ChatServer.dir/model/usermodel.cpp.o -c /home/xiong/chat/src/server/model/usermodel.cpp",
   "file": "/home/xiong/chat/src/server/model/usermodel.cpp"
+},
+{
+  "directory": "/home/xiong/chat/build",
+  "command": "/usr/bin/g++ -I/home/xiong/chat/include -I/home/xiong/chat/include/server -I/home/xiong/chat/include/server/db -I/home/xiong/chat/include/server/model -I/home/xiong/chat/thirdparty -g -g -o src/client/CMakeFiles/ChatClient.dir/main.cpp.o -c /home/xiong/chat/src/client/main.cpp",
+  "file": "/home/xiong/chat/src/client/main.cpp"
 }
 ]

@@ -12,3 +12,7 @@
 0	3	0	clean	a31eedcededa8236
 1	196	1727149494591513091	src/server/CMakeFiles/ChatServer.dir/offlinemessagemodel.cpp.o	5909d9c6cc56f39e
 1	228	1727256423764379986	src/server/CMakeFiles/ChatServer.dir/model/friendmodel.cpp.o	c9e521dc58c3e82e
+0	857	1727515699336379691	src/client/CMakeFiles/ChatClient.dir/main.cpp.o	b04811f4d6f762b5
+857	965	1727515699446379677	../bin/ChatClient	c3e79a8975337ae1
+0	1690	1727515700176379583	src/server/CMakeFiles/ChatServer.dir/chatservice.cpp.o	a234227bb06b327e
+1690	1975	1727515700456379547	../bin/ChatServer	5f9e2b121376b4b
