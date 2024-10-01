@@ -98,7 +98,7 @@ int main(int argc, char **argv)
             js["password"] = pwd;
             std::string request = js.dump();
 
-            int len = send(clientfd, request.c_str(), strlen(request.c_str() + 1), 0);
+            int len = send(clientfd, request.c_str(), strlen(request.c_str())+1, 0);
             if (-1 == len)
             {
                 std::cout << "send login msg error:" << request << std::endl;
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
                     else
                     {
                         // 注册成功
-                        std::cout << name << " register sucess, userid is" << responsejs["id"] << ", do not forget it!" << std::endl;
+                        std::cout << name << " register sucess, userid is " << responsejs["id"] << ", do not forget it!" << std::endl;
                     }
                 }
             }

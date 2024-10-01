@@ -64,6 +64,6 @@ void ChatServer::onMessage(
     }
     catch (const std::exception &e)
     {
-        LOG_INFO << "js error";
+        LOG_INFO << "js error:"<<buf;
     }
 }
