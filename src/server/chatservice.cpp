@@ -130,11 +130,11 @@ void ChatService::login(const muduo::net::TcpConnectionPtr &conn,
             if (user.getState() == "online")
             {
                 // 该账号已经登录，不允许重复登录
-                json respone;
-                respone["msgid"] = LOGIN_MSG_ACK;
-                respone["errno"] = 3;
-                respone["errmsg"] = "该账号已经登录，请重新输入新账号";
-                conn->send(respone.dump());
+                json response;
+                response["msgid"] = LOGIN_MSG_ACK;
+                response["errno"] = 3;
+                response["errmsg"] = "该账号已经登录，请重新输入新账号";
+                conn->send(response.dump());
             }
             else
             {
@@ -148,16 +148,16 @@ void ChatService::login(const muduo::net::TcpConnectionPtr &conn,
                 user.setState("online");
                 _userModel.updateState(user);
 
-                json respone;
-                respone["msgid"] = LOGIN_MSG_ACK;
-                respone["errno"] = 0;
-                respone["id"] = user.getId();
-                respone["name"] = user.getName();
+                json response;
+                response["msgid"] = LOGIN_MSG_ACK;
+                response["errno"] = 0;
+                response["id"] = user.getId();
+                response["name"] = user.getName();
                 // 查询该用户是否有离线消息
                 std::vector<std::string> vec = _offLineMsgModel.query(id);
                 if (!vec.empty())
                 {
-                    respone["offLineMsg"] = vec;
+                    response["offLineMsg"] = vec;
                     // 读取该用户的离线消息后，把该用户的所有离线消息删除掉
                     _offLineMsgModel.remove(id);
                 }
@@ -175,31 +175,60 @@ void ChatService::login(const muduo::net::TcpConnectionPtr &conn,
                         vec2.push_back(js.dump());
                     }
 
-                    // respone["friends"] = js.parse(userVec);
-                    respone["friends"] = vec2;
+                    // response["friends"] = js.parse(userVec);
+                    response["friends"] = vec2;
                 }
 
-                conn->send(respone.dump());
+                // 查询用户的群组信息
+                std::vector<Group> groupuserVec = _groupModel.queryGroups(id);
+                if (!groupuserVec.empty())
+                {
+                    // group:[{groupid:[xxx, xxx, xxx, xxx]}]
+                    std::vector<std::string> groupV;
+                    for (Group &group : groupuserVec)
+                    {
+                        json grpjson;
+                        grpjson["id"] = group.getId();
+                        grpjson["groupname"] = group.getName();
+                        grpjson["groupdesc"] = group.getDesc();
+                        std::vector<std::string> userV;
+                        for (GroupUser &user : group.getUsers())
+                        {
+                            json js;
+                            js["id"] = user.getId();
+                            js["name"] = user.getName();
+                            js["state"] = user.getState();
+                            js["role"] = user.getRole();
+                            userV.push_back(js.dump());
+                        }
+                        grpjson["users"] = userV;
+                        groupV.push_back(grpjson.dump());
+                    }
+
+                    response["groups"] = groupV;
+                }
+
+                conn->send(response.dump());
             }
         }
         else
         {
             // 登录失败吗，用户名或密码错误
-            json respone;
-            respone["msgid"] = LOGIN_MSG_ACK;
-            respone["errno"] = 2;
-            respone["errmsg"] = "用户名或密码错误";
-            conn->send(respone.dump());
+            json response;
+            response["msgid"] = LOGIN_MSG_ACK;
+            response["errno"] = 2;
+            response["errmsg"] = "用户名或密码错误";
+            conn->send(response.dump());
         }
     }
     else
     {
         // 用户名不存在
-        json respone;
-        respone["msgid"] = LOGIN_MSG_ACK;
-        respone["errno"] = 1;
-        respone["errmsg"] = "用户名不存在";
-        conn->send(respone.dump());
+        json response;
+        response["msgid"] = LOGIN_MSG_ACK;
+        response["errno"] = 1;
+        response["errmsg"] = "用户名不存在";
+        conn->send(response.dump());
     }
 
     LOG_INFO << "do login service!!!";
@@ -218,19 +247,19 @@ void ChatService::reg(const muduo::net::TcpConnectionPtr &conn,
     if (state)
     {
         // 注册成功
-        json respone;
-        respone["msgid"] = REG_MSG_ACK;
-        respone["errno"] = 0;
-        respone["id"] = user.getId();
-        conn->send(respone.dump());
+        json response;
+        response["msgid"] = REG_MSG_ACK;
+        response["errno"] = 0;
+        response["id"] = user.getId();
+        conn->send(response.dump());
     }
     else
     {
         // 注册失败
-        json respone;
-        respone["msgid"] = REG_MSG_ACK;
-        respone["errno"] = 1;
-        conn->send(respone.dump());
+        json response;
+        response["msgid"] = REG_MSG_ACK;
+        response["errno"] = 1;
+        conn->send(response.dump());
     }
 
     // LOG_INFO << "do reg service!!!";
