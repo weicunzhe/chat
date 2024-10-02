@@ -62,6 +62,13 @@ ChatService::ChatService()
                    this, std::placeholders::_1,
                    std::placeholders::_2,
                    std::placeholders::_3)});
+
+    _msgHandlerMap.insert(
+        {LOGINOUT_MSG,
+         std::bind(&ChatService::loginout,
+                   this, std::placeholders::_1,
+                   std::placeholders::_2,
+                   std::placeholders::_3)});
 }
 
 // 服务器异常，业务重置方法
@@ -114,6 +121,24 @@ void ChatService::clientCloseException(const muduo::net::TcpConnectionPtr &conn)
         user.setState("offline");
         _userModel.updateState(user);
     }
+}
+
+// 处理注销业务
+void ChatService::loginout(const muduo::net::TcpConnectionPtr &conn, json &js, muduo::Timestamp time)
+{
+    int userid = js["id"];
+    {
+        std::lock_guard<std::mutex> lock(_connMutex);
+        auto it = _userConnMap.find(userid);
+        if (it != _userConnMap.end())
+        {
+            _userConnMap.erase(it);
+        }
+    }
+    // 更新用户的状态信息
+    User user(userid);
+    user.setState("offline");
+    _userModel.updateState(user);
 }
 
 // 处理登录业务

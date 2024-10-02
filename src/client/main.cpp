@@ -22,6 +22,9 @@ std::vector<Group> g_currentGroupList;
 // 显示当前登录成功用户的基本信息
 void showCurrentUserData();
 
+// 控制主菜单页面程序
+bool isMainMenuRunning = false;
+
 // 接收线程
 void readTaskHandler(int clientfd);
 // 获取系统时间（聊天信息需要添加时间信息）
@@ -129,6 +132,8 @@ int main(int argc, char **argv)
                         // 记录当前用户的好友列表信息
                         if (responsejs.contains("friends"))
                         {
+                            // 初始化好友列表
+                            g_currentFriendList.clear();
                             std::vector<std::string> vec = responsejs["friends"];
                             for (std::string &str : vec)
                             {
@@ -144,6 +149,8 @@ int main(int argc, char **argv)
                         // 记录当前用户的群组列表信息
                         if (responsejs.contains("groups"))
                         {
+                            // 初始化群组信息
+                            g_currentGroupList.clear();
                             std::vector<std::string> vec = responsejs["groups"];
                             for (std::string &str : vec)
                             {
@@ -177,31 +184,30 @@ int main(int argc, char **argv)
                             std::vector<std::string> vec = responsejs["offLineMsg"];
                             for (std::string &str : vec)
                             {
-                                // try
-                                // {
-                                    json js = json::parse(str);
-                                    if (ONE_CHAT_MSG == js["msgid"])
-                                    {
-                                        std::cout << js["time"] << " [" << js["id"] << "]" << js["name"] << " said: " << js["msg"] << std::endl;
-                                    }
-                                    else
-                                    {
-                                        std::cout << "群消息[" << js["groupid"] << "]:" << js["time"] << " [" << js["id"] << "]" << js["name"] << " said: " << js["msg"] << std::endl;
-                                    }
-                                // }
-                                // catch (const std::exception &e)
-                                // {
-                                //     std::cerr << e.what() << '\n';
-                                //     std::cerr << str << '\n';
-                                // }
+                                json js = json::parse(str);
+                                if (ONE_CHAT_MSG == js["msgid"])
+                                {
+                                    std::cout << js["time"] << " [" << js["id"] << "]" << js["name"] << " said: " << js["msg"] << std::endl;
+                                }
+                                else
+                                {
+                                    std::cout << "群消息[" << js["groupid"] << "]:" << js["time"] << " [" << js["id"] << "]" << js["name"] << " said: " << js["msg"] << std::endl;
+                                }
                             }
                         }
 
-                        // 登录成功,启动接收线程负责接收收据
-                        std::thread readTask(readTaskHandler, clientfd); // pthread_create
-                        readTask.detach();                               // pthread_detach
+                        // 登录成功,启动接收线程负责接收收据, 该线程只启动一次
+                        static int readthreadnumber = 0;
+                        if (readthreadnumber == 0)
+                        {
+                            std::thread readTask(readTaskHandler, clientfd); // pthread_create
+                            readTask.detach();
+                            readthreadnumber++;
+                        }
+                        // pthread_detach
 
                         // 进入聊天主菜单界面
+                        isMainMenuRunning = true;
                         mainMenu(clientfd);
                     }
                 }
@@ -267,7 +273,7 @@ int main(int argc, char **argv)
 // 子线程 - 接收线程
 void readTaskHandler(int clientfd)
 {
-    while (true)
+    for (;;)
     {
         char buffer[1024] = {0};
         int len = recv(clientfd, buffer, sizeof(buffer), 0);
@@ -363,7 +369,7 @@ void mainMenu(int clientfd)
 {
     help();
     char buffer[1024] = {0};
-    for (;;)
+    while (isMainMenuRunning)
     {
         std::cin.getline(buffer, sizeof(buffer));
         std::string commandBuf(buffer);
@@ -513,8 +519,19 @@ void groupchat(int clientfd, std::string str)
     }
 };
 // "loginout" command handler
-void loginout(int clientfd, std::string str) {
+void loginout(int clientfd, std::string str)
+{
+    json js;
+    js["msgid"] = LOGINOUT_MSG;
+    js["id"] = g_currentUser.getId();
+    std::string buffer = js.dump();
 
+    int len = send(clientfd, buffer.c_str(), strlen(buffer.c_str()) + 1, 0);
+    if (-1 == len)
+    {
+        std::cerr << "send loginout msg error -> " << buffer << std::endl;
+    }
+    isMainMenuRunning = false;
 };
 
 // 获取系统时间（聊天信息需要添加时间信息）
