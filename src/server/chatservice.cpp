@@ -323,7 +323,7 @@ void ChatService::addGroup(const muduo::net::TcpConnectionPtr &conn, json &js, m
 void ChatService::groupChat(const muduo::net::TcpConnectionPtr &conn, json &js, muduo::Timestamp time)
 {
     int userid = js["id"];
-    int groupid = js["grouid"];
+    int groupid = js["groupid"];
     std::vector<int> useridVec = _groupModel.queryGroupUsers(userid, groupid);
     std::lock_guard<std::mutex> lock(_connMutex);
     for (int id : useridVec)

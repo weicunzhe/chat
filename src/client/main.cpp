@@ -105,7 +105,7 @@ int main(int argc, char **argv)
             }
             else
             {
-                char buffer[1024] = {0};
+                char buffer[4096] = {0};
                 len = recv(clientfd, buffer, sizeof(buffer), 0);
                 if (-1 == len)
                 {
@@ -177,15 +177,23 @@ int main(int argc, char **argv)
                             std::vector<std::string> vec = responsejs["offLineMsg"];
                             for (std::string &str : vec)
                             {
-                                json js = json::parse(str);
-                                if (ONE_CHAT_MSG == js["msgid"])
-                                {
-                                    std::cout << js["time"] << " [" << js["id"] << "]" << js["name"] << " said: " << js["msg"] << std::endl;
-                                }
-                                else
-                                {
-                                    std::cout << "群消息[" << js["groupid"] << "]:" << js["time"] << " [" << js["id"] << "]" << js["name"] << " said: " << js["msg"] << std::endl;
-                                }
+                                // try
+                                // {
+                                    json js = json::parse(str);
+                                    if (ONE_CHAT_MSG == js["msgid"])
+                                    {
+                                        std::cout << js["time"] << " [" << js["id"] << "]" << js["name"] << " said: " << js["msg"] << std::endl;
+                                    }
+                                    else
+                                    {
+                                        std::cout << "群消息[" << js["groupid"] << "]:" << js["time"] << " [" << js["id"] << "]" << js["name"] << " said: " << js["msg"] << std::endl;
+                                    }
+                                // }
+                                // catch (const std::exception &e)
+                                // {
+                                //     std::cerr << e.what() << '\n';
+                                //     std::cerr << str << '\n';
+                                // }
                             }
                         }
 
@@ -479,14 +487,15 @@ void addgroup(int clientfd, std::string str)
 // "groupchat" command handler
 void groupchat(int clientfd, std::string str)
 {
-    int idx = str.find(":"); // groupid:message
+    int idx = str.find(":");
     if (-1 == idx)
     {
         std::cerr << "groupchat command invalid!" << std::endl;
         return;
     }
+
     int groupid = atoi(str.substr(0, idx).c_str());
-    std::string message = str.substr(idx + 1, str.length() + 1 - idx);
+    std::string message = str.substr(idx + 1, str.size() - idx);
 
     json js;
     js["msgid"] = GROUP_CHAT_MSG;
@@ -495,6 +504,13 @@ void groupchat(int clientfd, std::string str)
     js["groupid"] = groupid;
     js["msg"] = message;
     js["time"] = getCurrentTime();
+    std::string buffer = js.dump();
+
+    int len = send(clientfd, buffer.c_str(), strlen(buffer.c_str()) + 1, 0);
+    if (-1 == len)
+    {
+        std::cerr << "send groupchat msg error -> " << buffer << std::endl;
+    }
 };
 // "loginout" command handler
 void loginout(int clientfd, std::string str) {
