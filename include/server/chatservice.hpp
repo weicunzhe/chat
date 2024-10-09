@@ -14,6 +14,8 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
+#include "redis.hpp"
+
 // 处理消息事件回调方法类型
 using MsgHandler = std::function<void(
     const muduo::net::TcpConnectionPtr &conn,
@@ -26,31 +28,25 @@ public:
     // 获取单例对象的接口函数
     static ChatService *instance();
     // 处理登录业务
-    void login(const muduo::net::TcpConnectionPtr &conn,
-               json &js, muduo::Timestamp time);
+    void login(const muduo::net::TcpConnectionPtr &conn, json &js, muduo::Timestamp time);
+    // 处理注销业务
+    void loginout(const muduo::net::TcpConnectionPtr &conn, json &js, muduo::Timestamp time);
     // 处理注册业务
-    void reg(const muduo::net::TcpConnectionPtr &conn,
-             json &js, muduo::Timestamp time);
+    void reg(const muduo::net::TcpConnectionPtr &conn, json &js, muduo::Timestamp time);
     // 一对一聊天业务
-    void oneChat(const muduo::net::TcpConnectionPtr &conn,
-                 json &js, muduo::Timestamp time);
+    void oneChat(const muduo::net::TcpConnectionPtr &conn, json &js, muduo::Timestamp time);
     // 添加好友业务
-    void addFriend(const muduo::net::TcpConnectionPtr &conn,
-                   json &js, muduo::Timestamp time);
+    void addFriend(const muduo::net::TcpConnectionPtr &conn, json &js, muduo::Timestamp time);
 
     // 创建群组业务
-    void createGroup(const muduo::net::TcpConnectionPtr &conn,
-                     json &js, muduo::Timestamp time);
+    void createGroup(const muduo::net::TcpConnectionPtr &conn, json &js, muduo::Timestamp time);
     // 加入群组业务
-    void addGroup(const muduo::net::TcpConnectionPtr &conn,
-                  json &js, muduo::Timestamp time);
+    void addGroup(const muduo::net::TcpConnectionPtr &conn, json &js, muduo::Timestamp time);
     // 群组聊天业务
-    void groupChat(const muduo::net::TcpConnectionPtr &conn,
-                   json &js, muduo::Timestamp time);
+    void groupChat(const muduo::net::TcpConnectionPtr &conn, json &js, muduo::Timestamp time);
 
-    // 处理注销业务
-    void loginout(const muduo::net::TcpConnectionPtr &conn,
-                   json &js, muduo::Timestamp time);
+
+    void handleRedisSubcribeMessage(int, std::string);
 
     // 处理客户端异常退出
     void clientCloseException(const muduo::net::TcpConnectionPtr &conn);
@@ -80,6 +76,9 @@ private:
     OffLineMessageModel _offLineMsgModel;
     FriendModel _friendModel;
     GroupModel _groupModel;
+
+    // Redis操作对象
+    Redis _redis;
 };
 
 #endif
