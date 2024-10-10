@@ -1,6 +1,4 @@
 # 忽略build目录
 build/
-
 bin/
-
-\.vscode/
+.vscode/
